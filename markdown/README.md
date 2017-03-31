@@ -32,4 +32,31 @@
 
 <center>![](../img/charpter2-Q1.png)</center>
 
+### 问题2
+
+这个问题关键要找到技巧，先分析一下问题，相当于有两个相邻的块，现在要交换它们的位置。一个最简单的方法是开辟一个新的空间，将其中的一块暂存起来，之后把第二块往前移，最后把暂存起来的第一块放到相应的位置上去。
+
+如果块很大而可用的空间很少，就需要一些精巧的方法，一种巧妙的实现是通过三次翻转完成的
+
+```Java
+public static void swap(char[] str, int from, int to){
+  for(int i = from,j = to; i < j; i++,j--){
+    char tmp = str[i];
+    str[i] = str[j];
+    str[j] = tmp;
+  }
+}
+
+public static void main(String[] args){
+  char[] str = {'a','b','c','d','e','f','g','h'};
+  swap(str, 0, 2);
+  swap(str, 3, 7);
+  swap(str, 0, 7);
+  System.out.println(str[1]);
+}
+```
+
+
+
+
 ## 第三章
