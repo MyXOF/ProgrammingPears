@@ -82,3 +82,46 @@ public static void main(String[] args){
 说了半天的反面教材，概括起来就是能写短的程序就不要写长的程序。
 
 现在许多语言都提倡函数式编程，可以说将这方面的思想发挥到了极致，然而程序写的越短，可读性就降低了，需要补很多注释，也是编程人员最头疼的地方，注释是写给别人看的不是自己看的。
+
+## 第四章
+
+```Java
+public static int binarySearch(int target, int[] arr, int len){
+  int lower = 0, upper = len - 1;
+  int index = -1;
+  while(true){
+    if(lower > upper){
+      index = -1;
+      break;
+    }
+    int tmp = lower + ((upper - lower) >> 1);
+    if(arr[tmp] == target){
+      index = tmp;
+      break;
+    } else if (arr[tmp] > target) {
+      upper = tmp - 1;
+    } else {
+      lower = tmp + 1;
+    }
+  }
+  return index;
+}
+
+public static void main(String[] args) {
+  int[] arr = {2,3,5,7,11,13,17,19,23,29};
+  System.out.println(binarySearch(6, arr, 10));
+  System.out.println(binarySearch(7, arr, 10));
+  System.out.println(binarySearch(8, arr, 10));
+  System.out.println(binarySearch(30, arr, 10));
+  System.out.println(binarySearch(1, arr, 10));
+  System.out.println(binarySearch(23, arr, 10));
+}
+```
+
+二分搜索最重要的是下面这句话，原书中没有考虑两个大数想加造成溢出的情况，而且不用语言中>>操作的优先级也不同，保险起见需要赢括号包裹起来
+
+> int tmp = lower + ((upper - lower) >> 1);
+
+刚开始的时候没写测试，程序有死循环的问题。原因还是上面计算中间索引的问题。多写测试有助于提高代码的质量和对问题的理解
+
+## 第五章
