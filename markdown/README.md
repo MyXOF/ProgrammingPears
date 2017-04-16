@@ -171,3 +171,149 @@ public static void main(String[] args) {
 > 做任何事情都应该尽量简单，但是不能过于简单
 
 之前的章节也有过类似的表述，简单的含义是不能缺少任何必要的组件。对于必要组件的定义，应该包含安全系数、一补偿估算参数时的错误和对问题了解的不足
+
+## 第八章
+
+本章就给定数组的子数组之和的最大值问题进行了分析，主要要思考的是分治算法和动态规划方法。
+
+先分析分治算法，基本思想是将原来的问题变成若干个子问题。如果给定数组的起始范围是lower, upper，中间值是mid，那么最大的子数组之和应该在\[lower, mid\]或者\[mid+1, upper\]中去寻找，亦或者是\[p, q\]，其中(p <= mid <= q)
+
+在计算\[p, q\]的时候可以采用贪心的方法，问题划分为两部分，\[p, mid\]和\[mid+1, q\]，分别求以mid结尾的最大子数组的和，和以mid+1开头的最大子数组的和
+
+分治方法的T(n) = 2T(n/2) + O(n)，解为T(n) = O(nlgn)
+
+```Java
+// 书中原版
+public static int max(int a,int b){
+  return a > b ? a : b;
+}
+
+public static int binaryMaxSum(int arr[], int lower, int upper){
+  if(lower > upper) return 0;
+  if(lower == upper) return arr[lower];
+  int mid = lower + ((upper - lower) >> 1);
+  int lmax = 0, lsum = 0;
+  for(int i = mid; i >= lower; i--){
+    lsum += arr[i];
+    lmax = max(lmax, lsum);
+  }
+  int rmax = 0, rsum = 0;
+  for(int i = mid+1; i <= upper;i++){
+    rsum += arr[i];
+    rmax = max(rmax, rsum);
+  }
+  return max(lmax+rmax, max(binaryMaxSum(arr, lower, mid), binaryMaxSum(arr, mid+1, upper)));
+}
+```
+这里有个小问题，当arr中的数全为负数的时候，会返回负数中的最大的那个，如果认为这是后应该范围没有，可以在最后加一个判断就可以了。
+
+上面的方法不能返回最大子数组的起始范围，修改一下程序，使用一个三元组TriInteger代替
+
+```Java
+// 改进版，增加了范围
+public static TriInteger max(TriInteger a, TriInteger b){
+  return a.value > b.value ? a : b;
+}
+
+public static TriInteger binaryMaxSumWithIndex(int arr[], int lower, int upper){
+  if(lower > upper) return new TriInteger(0, -1, -1);
+  if(lower == upper) return new TriInteger(arr[lower], lower, upper);
+  int mid = lower + ((upper - lower) >> 1);
+  int lmax = arr[mid], lsum = arr[mid], lindex = mid;
+  for(int i = mid-1; i >= lower; i--){
+    lsum += arr[i];
+    if(lsum > lmax){
+      lmax = lsum;
+      lindex = i;
+    }
+  }
+  int rmax = arr[mid], rsum = arr[mid], rindex = mid;
+  for(int i = mid+1; i <= upper;i++){
+    rsum += arr[i];
+    if(rsum > rmax){
+      rmax = rsum;
+      rindex = i;
+    }
+  }
+  return max(new TriInteger(lmax+rmax-arr[mid], lindex, rindex), max(binaryMaxSumWithIndex(arr, lower, mid), binaryMaxSumWithIndex(arr, mid+1, upper)));
+}
+
+// TriInteger.java
+public class TriInteger {
+	public int value;
+	public int lower;
+	public int upper;
+
+	public TriInteger(int value, int lower, int upper){
+		this.value = value;
+		this.lower = lower;
+		this.upper = upper;
+	}
+
+	@Override
+	public String toString(){
+		return String.format("value %d, from %d to %d", value, lower, upper);
+	}
+}
+
+public static void main(String[] args) {
+  // TODO Auto-generated method stub
+  int[] arr = {31,-41,59,26,-53,58,97,-93,-23,84};
+	System.out.println(binaryMaxSum(arr, 0, 9));
+  System.out.println(binaryMaxSumWithIndex(arr, 0, 9));
+}
+```
+
+接下来看动态规划方法，书上讲的太简单，这里参考《编程之美》2.14节的讲解，
+
+首先考虑arr\[0\]和arr\[i\]..arr\[\j]之间的关系
+1. 0 = i = j，那么arr\[0\]就是最大的那一段
+2. 0 = i < j，那么最大的那一段以arr\[0\]开头
+3. 0 < i，最大的那一段和arr\[0\]无关
+
+对于arr\[i+1]...arr\[n-1\]，如果已经知道最大的那一段是arr\[p\]...arr\[q\]，那么对于arr\[i\]而言，最大的一段有三种情况
+1. arr\[i\]
+2. 以arr\[i\]开头的一段
+3. arr\[p\]...arr\[q\]
+
+```Java
+public static int dynamicMaxSum(int arr[], int len){
+  int all = arr[len-1];
+  int start = arr[len-1];
+  for(int i = len-2;i >=0;i--){
+    start = max(arr[i], arr[i]+start);
+    all = max(all, start);
+  }
+  return all;
+}
+```
+
+这里的时间复杂度为O(n)
+
+如果需要指示位置，仍然用上面三元组的方式
+
+```Java
+public static TriInteger dynamicMaxSumWithIndex(int arr[], int len){
+  TriInteger all = new TriInteger(arr[len-1], len-1, len-1);
+  TriInteger start = new TriInteger(arr[len-1], len-1, len-1);
+  for(int i = len-2 ; i >= 0;i--){
+    if(arr[i] > arr[i]+start.value){
+      start.value = arr[i];
+      start.lower = i;
+      start.upper = i;
+    }else{
+      start.value = arr[i]+start.value;
+      start.lower = i;
+    }
+
+    if(start.value > all.value){
+      all.value = start.value;
+      all.upper = start.upper;
+      all.lower = start.lower;
+    }
+  }
+  return all;
+}
+```
+
+动态规划技术写起来容易想起来难，关键是要将计算的中间状态保存起来，同时建立起各个子问题之间的联系
