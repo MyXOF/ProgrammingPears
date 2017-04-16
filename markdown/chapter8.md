@@ -49,3 +49,40 @@ T(1) = 0的情况，先枚举一下
 > T(1) = c * 2^0 * 1, T(2) = c * 2^2 * 2, T(4) = c * 2^2 * 3, T(8) = c * 2^3 * 4...
 
 那么通项公式T(n) = cn(lgn + 1)，数学归纳法证明略
+
+## 附录
+
+补充一些经典的问题
+
+## 问题1
+
+求数组中最长递增子序列问题。例如在序列1,-1,2,-3,4,-5,6,-7中，最长递增子序列的长度为4(1,2,4,6)
+
+采用朴素的动态规划方法，假设在前i个元素中，以第i个元素结尾最长递增子序列的长度为LIS[i]，那么
+
+> LIS[i+1] = max{1, LIS[k]+1}, arr[i+1] > arr[k] 对任意的k<=i
+
+```Java
+public static int LIS(int[] arr, int len){
+  int[] LIS = new int[len];
+  for(int i = 0; i < len;i++){
+    LIS[i] = 1;
+    for(int j = 0; j < i;j++){
+      if(arr[i] > arr[j] && (LIS[j]+1) > LIS[i]){
+        LIS[i] = LIS[j] + 1;
+      }
+    }
+  }
+  int maxLen = 0;
+  for(int i = 0; i < len; i++){
+    maxLen = LIS[i] > maxLen ? LIS[i] : maxLen;
+  }
+  return maxLen;
+}
+
+public static void main(String[] args) {
+  // TODO Auto-generated method stub
+  int[] arr = {1,-1,2,-3,4,-5,6,-7};
+  System.out.println(LIS(arr, arr.length));
+}
+```
